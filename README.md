@@ -38,6 +38,8 @@ samge/samge_wx_bot:v1
 - 安装依赖：`go mod tidy`
 - 运行：`go run cmd/wxBot/main.go`
 
+### 技术交流
+[Join Discord >>](https://discord.com/invite/eRuSqve8CE)
 
 ### 免责声明
 该程序仅供技术交流，使用者所有行为与本项目作者无关
