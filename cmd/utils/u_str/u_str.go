@@ -1,9 +1,6 @@
 package u_str
 
 import (
-	"bytes"
-	"encoding/binary"
-	"encoding/hex"
 	"strconv"
 	"strings"
 )
@@ -37,15 +34,13 @@ func TrimNewlineSpace(s string) string {
 	return s
 }
 
-// Unicode2Str unicode字符串转string
-func Unicode2Str(form string, defaultValue string) (to string) {
-	bs, err := hex.DecodeString(strings.Replace(form, `\u`, ``, -1))
-	if err != nil {
-		return defaultValue
+// Contains 判断某个值是否存在与一个由,分割的字符串里
+func Contains(names, name string) bool {
+	nameList := strings.Split(names, ",")
+	for _, n := range nameList {
+		if n == name {
+			return true
+		}
 	}
-	for i, bl, br, r := 0, len(bs), bytes.NewReader(bs), uint16(0); i < bl; i += 2 {
-		binary.Read(br, binary.BigEndian, &r)
-		to += string(r)
-	}
-	return to
+	return false
 }

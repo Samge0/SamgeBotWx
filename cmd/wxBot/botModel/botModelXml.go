@@ -7,11 +7,11 @@ import (
 
 // WxMpArticleItem 公众号文章简化列表item
 type WxMpArticleItem struct {
-	Title   string `json:"title",xml:"title"`
-	URL     string `json:"url",xml:"url"`
-	Source  string `json:"source",xml:"source"`
-	Cover   string `json:"cover",xml:"cover"`
-	PubTime string `json:"pub_time",xml:"pub_time"`
+	Title   string `json:"title" ,xml:"title"`
+	URL     string `json:"url" ,xml:"url"`
+	Source  string `json:"source" ,xml:"source"`
+	Cover   string `json:"cover" ,xml:"cover"`
+	PubTime string `json:"pub_time" ,xml:"pub_time"`
 }
 
 // String 打印

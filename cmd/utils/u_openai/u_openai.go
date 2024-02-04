@@ -1,6 +1,7 @@
 package u_openai
 
 import (
+	config "SamgeWxApi/cmd/utils/u_config"
 	"SamgeWxApi/cmd/utils/u_http"
 	"errors"
 	"fmt"
@@ -11,13 +12,18 @@ import (
 
 // OpenAiParams apoenai的api请求参数
 type OpenAiParams struct {
-	Model            string  `json:"model"`
-	Prompt           string  `json:"prompt"`
-	Temperature      float32 `json:"temperature"`
-	MaxTokens        int     `json:"max_tokens"`
-	TopP             float32 `json:"top_p"`
-	FrequencyPenalty float32 `json:"frequency_penalty"`
-	PresencePenalty  float32 `json:"presence_penalty"`
+	Model            string     `json:"model"`
+	Temperature      float32    `json:"temperature"`
+	MaxTokens        int        `json:"max_tokens"`
+	TopP             float32    `json:"top_p"`
+	FrequencyPenalty float32    `json:"frequency_penalty"`
+	PresencePenalty  float32    `json:"presence_penalty"`
+	Messages         []Messages `json:"messages"`
+}
+
+type Messages struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
 }
 
 type OpenAiResponse struct {
@@ -30,10 +36,9 @@ type OpenAiResponse struct {
 }
 
 type Choices struct {
-	Text         string      `json:"text"`
-	Index        int         `json:"index"`
-	Logprobs     interface{} `json:"logprobs"`
-	FinishReason string      `json:"finish_reason"`
+	Message      Messages `json:"message"`
+	FinishReason string   `json:"finish_reason"`
+	Index        int      `json:"index"`
 }
 
 type Usage struct {
@@ -42,35 +47,27 @@ type Usage struct {
 	TotalTokens      int `json:"total_tokens"`
 }
 
-const (
-	ModelChat string = "text-davinci-003"
-)
-
-const (
-	// ApiUrl api请求地址
-	ApiUrl = "https://api.openai.com/v1/completions"
-	// Authorization 认证token
-	Authorization = "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"
-	// ChatMaxTokens 回答的最大字符长度
-	ChatMaxTokens = 100
-)
-
 // GetChatResponseWithToken 获取一个聊天的回答
-func GetChatResponseWithToken(prompt string, maxLen int, token string) (string, error) {
+func GetChatResponseWithToken(prompt string) (string, error) {
+	message := Messages{
+		Role:    "user",
+		Content: prompt,
+	}
 	openaiParams := OpenAiParams{
-		Model:            ModelChat,
-		Prompt:           prompt,
-		Temperature:      0.9,
-		MaxTokens:        maxLen,
-		TopP:             1.0,
-		FrequencyPenalty: 0.0,
-		PresencePenalty:  0.6,
+		Model:            config.LoadConfig().Model,
+		Temperature:      config.LoadConfig().Temperature,
+		MaxTokens:        config.LoadConfig().MaxTokens,
+		TopP:             config.LoadConfig().TopP,
+		FrequencyPenalty: config.LoadConfig().FrequencyPenalty,
+		PresencePenalty:  config.LoadConfig().PresencePenalty,
+		Messages:         []Messages{message},
 	}
 	headers := map[string]string{
 		"Content-Type":  "application/json",
-		"Authorization": fmt.Sprintf("Bearer %s", token),
+		"Authorization": fmt.Sprintf("Bearer %s", config.LoadConfig().ApiKey),
 	}
-	body, err := u_http.Post(ApiUrl, headers, openaiParams)
+	reqUrl := fmt.Sprintf("%s/chat/completions", config.LoadConfig().BaseUrl)
+	body, err := u_http.Post(reqUrl, headers, openaiParams)
 	if err != nil {
 		if strings.Contains(err.Error(), "Client.Timeout") {
 			return "哎呀呀~你的问题太高深，我一时反应不过来呀", err
@@ -86,11 +83,6 @@ func GetChatResponseWithToken(prompt string, maxLen int, token string) (string, 
 	return result, nil
 }
 
-// GetChatResponse 获取一个聊天的回答
-func GetChatResponse(prompt string, maxLen int) (string, error) {
-	return GetChatResponseWithToken(prompt, maxLen, Authorization)
-}
-
 // GetChatResult 获取聊天的结果
 func GetChatResult(body []byte) (string, error) {
 	fmt.Println(string(body))
@@ -102,7 +94,7 @@ func GetChatResult(body []byte) (string, error) {
 	}
 	if len(result.Choices) > 0 {
 		var msg string
-		msg = result.Choices[0].Text
+		msg = result.Choices[0].Message.Content
 		msg = strings.Replace(msg, "&#xA;", "", -1)
 		msg = strings.Replace(msg, "\n", "", -1)
 		log.Printf("回复内容：%s\n", msg)

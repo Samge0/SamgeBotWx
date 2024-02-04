@@ -1,13 +1,12 @@
 package botUtil
 
 import (
+	config "SamgeWxApi/cmd/utils/u_config"
 	"SamgeWxApi/cmd/utils/u_date"
 	"SamgeWxApi/cmd/utils/u_openai"
 	"SamgeWxApi/cmd/utils/u_str"
-	"SamgeWxApi/cmd/wxBot/botConfig"
 	"fmt"
 	"github.com/eatmoreapple/openwechat"
-	"os"
 	"strings"
 )
 
@@ -27,6 +26,15 @@ func GetMsgSender(msg *openwechat.Message, errorTip string) *openwechat.User {
 		return nil
 	}
 	return sender
+}
+
+// GetMsgSenderNickName 获取消息发送者名称， 获取失败则返回空字符串
+func GetMsgSenderNickName(msg *openwechat.Message) string {
+	sender, err := msg.Sender()
+	if err != nil {
+		return ""
+	}
+	return sender.NickName
 }
 
 // GetMsgSenderInGroup 获取消息在群里面的发送者
@@ -51,8 +59,7 @@ func GetMsgReceiver(msg *openwechat.Message, errorTip string) *openwechat.User {
 
 // ReplyWithOpenAi 使用openai的api进行回复
 func ReplyWithOpenAi(msg *openwechat.Message, question string, qType string, sender *openwechat.User) {
-	openAiToken := u_str.FirstStr(botConfig.OpenAiToken, os.Getenv(botConfig.EnvKeyOpenAiToken))
-	answer, err := u_openai.GetChatResponseWithToken(question, 1000, openAiToken)
+	answer, err := u_openai.GetChatResponseWithToken(question)
 	if err != nil {
 		SaveErrorLog(err, "ReplyWithOpenAi")
 	} else {
@@ -63,38 +70,41 @@ func ReplyWithOpenAi(msg *openwechat.Message, question string, qType string, sen
 
 // CheckStartTagAndReply 检查内容的起始标签，如果符合则进行回复
 func CheckStartTagAndReply(msg *openwechat.Message, qType string, sender *openwechat.User) {
-	if msg.IsTickledMe() {
+	switch {
+	case msg.IsTickledMe():
 		ParseMsgOnTickled(msg, fmt.Sprintf("%s 拍一拍", qType), sender)
-	} else if msg.IsText() { // 文本
+	case msg.IsText(): // 文本
 		ParseMsgOnText(msg, qType, sender)
-	} else if msg.IsPicture() { // 图片
+	case msg.IsPicture(): // 图片
 		ParseMsgOnImage(msg, qType, sender)
-	} else if msg.IsVoice() { // 语音
+	case msg.IsVoice(): // 语音
 		ParseMsgOnVoice(msg, qType, sender)
-	} else if msg.IsCard() { // 卡片
+	case msg.IsCard(): // 卡片
 		ParseMsgOnCard(msg, qType, sender)
-	} else if msg.IsVideo() { // 视频
+	case msg.IsVideo(): // 视频
 		ParseMsgOnVideo(msg, qType, sender)
-	} else if msg.IsEmoticon() { // 表情包
+	case msg.IsEmoticon(): // 表情包
 		ParseMsgOnEmoticon(msg, qType, sender)
-	} else if msg.IsRealtimeLocation() { // 实时位置共享
+	case msg.IsRealtimeLocation(): // 实时位置共享
 		ParseMsgOnRealtimeLocation(msg, qType, sender)
-	} else if msg.IsLocation() { // 位置
+	case msg.IsLocation(): // 位置
 		ParseMsgOnLocation(msg, qType, sender)
-	} else if msg.IsTransferAccounts() { // 微信转账
+	case msg.IsTransferAccounts(): // 微信转账
 		ParseMsgOnTransferAccounts(msg, qType, sender)
-	} else if msg.IsSendRedPacket() { // 微信红包-发出
+	case msg.IsSendRedPacket(): // 微信红包-发出
 		ParseMsgOnSendRedPacket(msg, qType, sender)
-	} else if msg.IsReceiveRedPacket() { // 微信红包-收到
+	case msg.IsReceiveRedPacket(): // 微信红包-收到
 		ParseMsgOnReceiveRedPacket(msg, qType, sender)
-	} else if msg.IsRenameGroup() { // 群组重命名
+	case msg.IsRenameGroup(): // 群组重命名
 		ParseMsgOnRenameGroup(msg, qType, sender)
-	} else if msg.IsArticle() { // 文章
+	case msg.IsArticle(): // 文章
 		ParseMsgOnArticle(msg, qType, sender)
-	} else if msg.IsVoipInvite() { // 语音/视频邀请
+	case msg.IsVoipInvite(): // 语音/视频邀请
 		ParseMsgOnVoipInvite(msg, qType, sender)
-	} else if msg.IsMedia() { // Media(多媒体消息，包括但不限于APP分享、文件分享
+	case msg.IsMedia(): // Media(多媒体消息，包括但不限于APP分享、文件分享
 		ParseMsgOnMedia(msg, qType, sender)
+	default:
+		fmt.Printf("CheckStartTagAndReply 没有命中的类型，跳过")
 	}
 
 }
@@ -108,22 +118,46 @@ func ParseMsgOnTickled(msg *openwechat.Message, qType string, sender *openwechat
 
 // ParseMsgOnText 处理【OnText】类型的消息
 func ParseMsgOnText(msg *openwechat.Message, qType string, sender *openwechat.User) {
-	tagHead := "生成头像 "
-	tagT2I := "生成图片 "
-
 	var question string
 	question = msg.Content
-	if strings.HasPrefix(question, tagHead) {
+
+	// 解析管理员的特殊指令
+	if config.NeedParseCmd(sender.NickName, question) {
+		fmt.Printf("解析管理员(%s)的特殊指令：%s\n", sender.NickName, question)
+		switch question {
+		case config.CmdOpenReply:
+			config.LoadConfig().EnableReply = true
+		case config.CmdCloseReply:
+			config.LoadConfig().EnableReply = false
+		default:
+			fmt.Printf("解析管理员的特殊指令: 没有命中的类型，跳过")
+		}
+		return
+	}
+
+	// 禁止回复则跳过
+	if !config.LoadConfig().EnableReply {
+		fmt.Printf("当前已禁止回复，忽略该条消息 -> %s：%s\n", sender.NickName, question)
+		return
+	}
+
+	// 解析其他指令
+	tagHead := "生成头像 "
+	tagT2I := "生成图片 "
+	switch {
+	case strings.HasPrefix(question, tagHead):
+		// 生成头像
 		question = strings.Replace(question, tagHead, "", 1)
 		answer := fmt.Sprintf("%s 服务正在开发中", tagHead)
 		ReplyText(msg, answer, sender)
 		SaveChatLog(msg, question, answer, tagHead)
-	} else if strings.HasPrefix(question, tagT2I) {
+	case strings.HasPrefix(question, tagT2I):
+		// 生成图片
 		question = strings.Replace(question, tagT2I, "", 1)
 		answer := fmt.Sprintf("%s 服务正在开发中", tagT2I)
 		ReplyText(msg, answer, sender)
 		SaveChatLog(msg, question, answer, tagT2I)
-	} else {
+	default:
 		ReplyWithOpenAi(msg, question, qType, sender)
 	}
 }
@@ -135,7 +169,11 @@ func ParseMsgOnImage(msg *openwechat.Message, qType string, sender *openwechat.U
 	SaveChatLog(msg, "", answer, fmt.Sprintf("%s 图片", qType))
 
 	fileName := u_date.GetCurrentDateStr(u_date.DateFormat.Flow)
-	msg.SaveFileToLocal(fmt.Sprintf("%s/%s_%s.jpg", botConfig.BotCacheDir, sender.NickName, u_str.FirstStr(msg.FileName, fileName)))
+	err := msg.SaveFileToLocal(fmt.Sprintf("%s/%s_%s.jpg", config.BotCacheDir, sender.NickName, u_str.FirstStr(msg.FileName, fileName)))
+	if err != nil {
+		SaveErrorLog(err, "SaveFileToLocal-保存图片")
+		return
+	}
 }
 
 // ParseMsgOnVoice 处理【OnVoice】类型的消息
@@ -145,7 +183,11 @@ func ParseMsgOnVoice(msg *openwechat.Message, qType string, sender *openwechat.U
 	SaveChatLog(msg, "", answer, fmt.Sprintf("%s 语音", qType))
 
 	fileName := u_date.GetCurrentDateStr(u_date.DateFormat.Flow)
-	msg.SaveFileToLocal(fmt.Sprintf("%s/%s_%s.amr", botConfig.BotCacheDir, sender.NickName, u_str.FirstStr(msg.FileName, fileName)))
+	err := msg.SaveFileToLocal(fmt.Sprintf("%s/%s_%s.amr", config.BotCacheDir, sender.NickName, u_str.FirstStr(msg.FileName, fileName)))
+	if err != nil {
+		SaveErrorLog(err, "SaveFileToLocal-保存语音")
+		return
+	}
 }
 
 // ParseMsgOnCard 处理【OnCard】类型的消息
@@ -162,7 +204,11 @@ func ParseMsgOnMedia(msg *openwechat.Message, qType string, sender *openwechat.U
 	SaveChatLog(msg, "", answer, fmt.Sprintf("%s 多媒体消息等", qType))
 
 	fileName := u_date.GetCurrentDateStr(u_date.DateFormat.Flow)
-	msg.SaveFileToLocal(fmt.Sprintf("%s/%s_%s.file", botConfig.BotCacheDir, sender.NickName, u_str.FirstStr(msg.FileName, fileName)))
+	err := msg.SaveFileToLocal(fmt.Sprintf("%s/%s_%s.file", config.BotCacheDir, sender.NickName, u_str.FirstStr(msg.FileName, fileName)))
+	if err != nil {
+		SaveErrorLog(err, "SaveFileToLocal-保存多媒体")
+		return
+	}
 }
 
 // ParseMsgOnVideo 处理【视频】类型的消息
@@ -172,7 +218,11 @@ func ParseMsgOnVideo(msg *openwechat.Message, qType string, sender *openwechat.U
 	SaveChatLog(msg, "", answer, fmt.Sprintf("%s 视频", qType))
 
 	fileName := u_date.GetCurrentDateStr(u_date.DateFormat.Flow)
-	msg.SaveFileToLocal(fmt.Sprintf("%s/%s_%s.mp4", botConfig.BotCacheDir, sender.NickName, u_str.FirstStr(msg.FileName, fileName)))
+	err := msg.SaveFileToLocal(fmt.Sprintf("%s/%s_%s.mp4", config.BotCacheDir, sender.NickName, u_str.FirstStr(msg.FileName, fileName)))
+	if err != nil {
+		SaveErrorLog(err, "SaveFileToLocal-保存视频")
+		return
+	}
 }
 
 // ParseMsgOnEmoticon 处理【表情】类型的消息
@@ -182,7 +232,11 @@ func ParseMsgOnEmoticon(msg *openwechat.Message, qType string, sender *openwecha
 	SaveChatLog(msg, "", answer, fmt.Sprintf("%s 表情", qType))
 
 	fileName := u_date.GetCurrentDateStr(u_date.DateFormat.Flow)
-	msg.SaveFileToLocal(fmt.Sprintf("%s/%s_%s.gif", botConfig.BotCacheDir, sender.NickName, u_str.FirstStr(msg.FileName, fileName)))
+	err := msg.SaveFileToLocal(fmt.Sprintf("%s/%s_%s.gif", config.BotCacheDir, sender.NickName, u_str.FirstStr(msg.FileName, fileName)))
+	if err != nil {
+		SaveErrorLog(err, "SaveFileToLocal-保存表情")
+		return
+	}
 }
 
 // ParseMsgOnRealtimeLocation 处理【实时位置】类型的消息
@@ -240,11 +294,21 @@ func ParseMsgOnVoipInvite(msg *openwechat.Message, qType string, sender *openwec
 
 // ReplyText 回复文本，如果是群聊，则@对方
 func ReplyText(msg *openwechat.Message, answer string, sender *openwechat.User) {
+	var text = answer
+	var replyTypeTag = "好友"
+
 	if msg.IsSendByGroup() && sender != nil {
-		//s := u_str.Unicode2Str(` `, " ")
 		s := " "
-		msg.ReplyText(fmt.Sprintf("@%s%s%s", sender.NickName, s, answer))
+		text = fmt.Sprintf("@%s%s%s", sender.NickName, s, answer)
+		replyTypeTag = "群组"
+	}
+
+	if config.LoadConfig().EnableReply {
+		_, err := msg.ReplyText(text)
+		if err != nil {
+			fmt.Printf("【Error】ReplyText->回复%s：%s\n", replyTypeTag, text)
+		}
 	} else {
-		msg.ReplyText(answer)
+		fmt.Printf("ReplyText->回复%s：%s\n", replyTypeTag, text)
 	}
 }

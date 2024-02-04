@@ -1,0 +1,16 @@
+{
+  "base_url": "https://api.openai.com/v1",
+  "api_key": "openai/本地模型/其他模型定义的api_key",
+  "model": "gpt-3.5-turbo-1106",
+  "bot_desc": "",
+  "max_tokens": 2048,
+  "temperature": 0.9,
+  "top_p": 1,
+  "frequency_penalty": 0.0,
+  "presence_penalty": 0.6,
+  "group_ids": "",
+  "friend_ids": "",
+  "manager_ids": "",
+  "mine_nickname": "",
+  "enable_reply": true
+}

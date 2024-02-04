@@ -1,10 +1,10 @@
 module SamgeWxApi
 
-go 1.19
+go 1.20
 
 require (
-	github.com/eatmoreapple/openwechat v1.3.8
-	github.com/goccy/go-json v0.9.11
+	github.com/eatmoreapple/openwechat v1.4.6
+	github.com/goccy/go-json v0.10.2
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
-	golang.org/x/net v0.4.0
+	golang.org/x/net v0.20.0
 )

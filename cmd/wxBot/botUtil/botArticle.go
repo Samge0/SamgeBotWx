@@ -1,10 +1,10 @@
 package botUtil
 
 import (
+	config "SamgeWxApi/cmd/utils/u_config"
 	"SamgeWxApi/cmd/utils/u_date"
 	"SamgeWxApi/cmd/utils/u_file"
 	"SamgeWxApi/cmd/utils/u_str"
-	"SamgeWxApi/cmd/wxBot/botConfig"
 	"SamgeWxApi/cmd/wxBot/botModel"
 	"fmt"
 	"github.com/eatmoreapple/openwechat"
@@ -13,7 +13,7 @@ import (
 
 // SaveMpArticleLog 保存公众号推送文章信息
 func SaveMpArticleLog(msg *openwechat.Message, articleLog string, qType string) {
-	mpArticleLogPath := fmt.Sprintf("%s/wxMpArticle2.log", botConfig.BotLogDir)
+	mpArticleLogPath := fmt.Sprintf("%s/wxMpArticle2.log", config.BotLogDir)
 	spiltLine := "-----------------------------------------------------------------------------"
 	currDate := u_date.GetCurrentDateStr()
 	_format := "%s【%s】\n%s：%s\n%s\n\n"
@@ -24,7 +24,7 @@ func SaveMpArticleLog(msg *openwechat.Message, articleLog string, qType string) 
 
 // SaveMpChatLog 保存公众号聊天日志
 func SaveMpChatLog(msg *openwechat.Message, question string, answer string, qType string) {
-	mpChatLogPath := fmt.Sprintf("%s/wxMpChat.log", botConfig.BotLogDir)
+	mpChatLogPath := fmt.Sprintf("%s/wxMpChat.log", config.BotLogDir)
 	spiltLine := "-----------------------------------------------------------------------------"
 	currDate := u_date.GetCurrentDateStr()
 	_format := "%s【%s】\n%s：%s\nBot：%s\n%s\n\n"

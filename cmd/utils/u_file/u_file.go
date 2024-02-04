@@ -37,7 +37,9 @@ func Open(filePath string) (*os.File, error) {
 // xml转go的struct：https://tool.hiofd.com/xml-to-go/
 func ReadXml(filePath string, infoStruct iface.BaseInterface) error {
 	file, err := Open(filePath)
-	defer file.Close()
+	defer func(file *os.File) {
+		_ = file.Close()
+	}(file)
 	decoder := xml.NewDecoder(file) //创建 xml 解码器
 	err = decoder.Decode(&infoStruct)
 	if err != nil {

@@ -1,9 +1,9 @@
 package main
 
-// 文档：https://github.com/eatmoreapple/openwechat/blob/master/source/bot.md
+// 文档：https://github.com/eatmoreapple/openwechat
 
 import (
-	"SamgeWxApi/cmd/wxBot/botConfig"
+	config "SamgeWxApi/cmd/utils/u_config"
 	"SamgeWxApi/cmd/wxBot/botHandler"
 	"SamgeWxApi/cmd/wxBot/botMsg"
 	"errors"
@@ -12,7 +12,7 @@ import (
 
 // RunBot 运行wx机器人
 func RunBot() {
-	if err := botConfig.InitCacheDir(); err != nil {
+	if err := config.InitCacheDir(); err != nil {
 		panic(errors.New(fmt.Sprintf("InitCacheDir failed：%s", err.Error())))
 	}
 

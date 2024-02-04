@@ -36,30 +36,35 @@ func regDispatcher(dispatcher *openwechat.MessageMatchDispatcher) {
 // OnText 注册处理消息类型为Text的处理函数
 func OnText(dispatcher *openwechat.MessageMatchDispatcher) {
 	dispatcher.OnText(func(ctx *openwechat.MessageContext) {
+		debugPrintMsg("OnText 注册处理消息类型为Text的处理函数", getSenderNameAndRawContent(ctx))
 	})
 }
 
 // OnImage 注册处理消息类型为Image的处理函数
 func OnImage(dispatcher *openwechat.MessageMatchDispatcher) {
 	dispatcher.OnImage(func(ctx *openwechat.MessageContext) {
+		debugPrintMsg("OnImage 注册处理消息类型为Image的处理函数", getSenderNameAndRawContent(ctx))
 	})
 }
 
 // OnEmoticon 注册处理消息类型为Emoticon的处理函数(表情包)
 func OnEmoticon(dispatcher *openwechat.MessageMatchDispatcher) {
 	dispatcher.OnImage(func(ctx *openwechat.MessageContext) {
+		debugPrintMsg("OnEmoticon 注册处理消息类型为Emoticon的处理函数(表情包)", getSenderNameAndRawContent(ctx))
 	})
 }
 
 // OnVoice 注册处理消息类型为Voice的处理函数
 func OnVoice(dispatcher *openwechat.MessageMatchDispatcher) {
 	dispatcher.OnVoice(func(ctx *openwechat.MessageContext) {
+		debugPrintMsg("OnVoice 注册处理消息类型为Voice的处理函数", getSenderNameAndRawContent(ctx))
 	})
 }
 
 // OnFriendAdd 注册处理消息类型为FriendAdd的处理函数
 func OnFriendAdd(dispatcher *openwechat.MessageMatchDispatcher) {
 	dispatcher.OnFriendAdd(func(ctx *openwechat.MessageContext) {
+		debugPrintMsg("OnFriendAdd 注册处理消息类型为FriendAdd的处理函数", getSenderNameAndRawContent(ctx))
 		msg := ctx.Message
 		friend, err := msg.Agree("已同意好友")
 		if err != nil {
@@ -72,40 +77,56 @@ func OnFriendAdd(dispatcher *openwechat.MessageMatchDispatcher) {
 // OnCard 注册处理消息类型为Card的处理函数
 func OnCard(dispatcher *openwechat.MessageMatchDispatcher) {
 	dispatcher.OnCard(func(ctx *openwechat.MessageContext) {
+		debugPrintMsg("OnCard 注册处理消息类型为Card的处理函数", getSenderNameAndRawContent(ctx))
 	})
 }
 
 // OnMedia 注册处理消息类型为Media(多媒体消息，包括但不限于APP分享、文件分享)的处理函数
 func OnMedia(dispatcher *openwechat.MessageMatchDispatcher) {
 	dispatcher.OnMedia(func(ctx *openwechat.MessageContext) {
+		debugPrintMsg("OnMedia 注册处理消息类型为Media(多媒体消息，包括但不限于APP分享、文件分享)的处理函数", getSenderNameAndRawContent(ctx))
 	})
 }
 
 // OnUser 注册根据消息发送者的行为是否匹配的消息处理函数
 func OnUser(dispatcher *openwechat.MessageMatchDispatcher) {
 	dispatcher.OnUser(checkUser, func(ctx *openwechat.MessageContext) {
+		debugPrintMsg("OnUser 注册根据消息发送者的行为是否匹配的消息处理函数", getSenderNameAndRawContent(ctx))
 	})
 }
 
 // OnFriendByRemarkName 注册根据好友备注是否匹配的消息处理函数
 func OnFriendByRemarkName(dispatcher *openwechat.MessageMatchDispatcher, remarkName string) {
 	dispatcher.OnFriendByRemarkName(remarkName, func(ctx *openwechat.MessageContext) {
+		debugPrintMsg("OnFriendByRemarkName 注册根据好友备注是否匹配的消息处理函数", fmt.Sprintf("%s | %s", remarkName, getSenderNameAndRawContent(ctx)))
 	})
 }
 
 // OnGroupByGroupName 注册根据群名是否匹配的消息处理函数
 func OnGroupByGroupName(dispatcher *openwechat.MessageMatchDispatcher, groupName string) {
 	dispatcher.OnGroupByGroupName(groupName, func(ctx *openwechat.MessageContext) {
+		debugPrintMsg("OnGroupByGroupName 注册根据群名是否匹配的消息处理函数", fmt.Sprintf("%s | %s", groupName, getSenderNameAndRawContent(ctx)))
 	})
 }
 
 // OnFriendByNickName 注册根据好友昵称是否匹配的消息处理函数
 func OnFriendByNickName(dispatcher *openwechat.MessageMatchDispatcher, nickName string) {
 	dispatcher.OnFriendByNickName(nickName, func(ctx *openwechat.MessageContext) {
+		debugPrintMsg("OnFriendByNickName 注册根据好友昵称是否匹配的消息处理函数", fmt.Sprintf("%s | %s", nickName, getSenderNameAndRawContent(ctx)))
 	})
+}
+
+// getSenderNameAndRawContent 获取发送者名称+原始消息内容 - 这个目前主要输出日志用
+func getSenderNameAndRawContent(ctx *openwechat.MessageContext) string {
+	return fmt.Sprintf("%s | %s", botUtil.GetMsgSenderNickName(ctx.Message), ctx.RawContent)
 }
 
 // checkUser 检查用户是否符合要求
 func checkUser(user *openwechat.User) bool {
 	return true
+}
+
+// debugPrintMsg 调试时打印处理函数名+接收的原始信息
+func debugPrintMsg(funcName string, content string) {
+	fmt.Printf("[%s] => %s\n", funcName, content)
 }

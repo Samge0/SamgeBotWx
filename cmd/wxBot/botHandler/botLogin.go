@@ -1,9 +1,10 @@
 package botHandler
 
 import (
-	"SamgeWxApi/cmd/wxBot/botConfig"
+	config "SamgeWxApi/cmd/utils/u_config"
 	"SamgeWxApi/cmd/wxBot/botUtil"
 	"github.com/eatmoreapple/openwechat"
+	"io"
 )
 
 func ParseLogin(bot *openwechat.Bot) bool {
@@ -26,10 +27,15 @@ func ParseLogin(bot *openwechat.Bot) bool {
 	//}
 
 	// 推送登录
-	reloadStorage := openwechat.NewFileHotReloadStorage(botConfig.LoginStoragePath)
-	defer reloadStorage.Close()
+	reloadStorage := openwechat.NewFileHotReloadStorage(config.LoginStoragePath)
+	defer func(reloadStorage io.ReadWriteCloser) {
+		err := reloadStorage.Close()
+		if err != nil {
+			botUtil.SaveErrorLog(err, "reloadStorage.Close")
+		}
+	}(reloadStorage)
 	if err := bot.PushLogin(reloadStorage, openwechat.NewRetryLoginOption()); err != nil {
-		botUtil.SaveErrorLog(err, "热登录")
+		botUtil.SaveErrorLog(err, "推送登录")
 		return false
 	}
 	return true

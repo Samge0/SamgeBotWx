@@ -71,7 +71,7 @@ func DoReq(url string, headers map[string]string, params any) (*[]byte, error) {
 		errorMsg := fmt.Sprintf("[client.Do]失败, 错误内容: %s\n", err.Error())
 		return nil, errors.New(errorMsg)
 	}
-	fmt.Println("statusCode: ", resp.StatusCode)
+	fmt.Printf("statusCode(%v): %s \n", resp.StatusCode, url)
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {

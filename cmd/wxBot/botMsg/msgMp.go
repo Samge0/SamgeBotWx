@@ -10,6 +10,8 @@ import (
 // OnUserMp 注册根据消息发送者的行为是否匹配【公众号】的消息处理函数
 func OnUserMp(dispatcher *openwechat.MessageMatchDispatcher) {
 	dispatcher.OnUser(checkUserMp, func(ctx *openwechat.MessageContext) {
+		debugPrintMsg("OnUserMp 注册根据消息发送者的行为是否匹配【公众号】的消息处理函数", getSenderNameAndRawContent(ctx))
+
 		msg := ctx.Message
 		sender := botUtil.GetMsgSenderWithoutGroup(msg, "获取[OnUserMp]消息发送者")
 		if sender == nil {
