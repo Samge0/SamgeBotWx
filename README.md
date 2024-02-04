@@ -15,10 +15,6 @@
 [点击查看docker运行时的参数说明>>](docker/README.md)
 
 ```shell
-mv config.dev.json xxx/docker_data/samge_wx_bot/config.json
-```
-
-```shell
 docker run -d \
 -p 8888:8080 \
 --name samge_wx_bot \
@@ -30,9 +26,20 @@ samge/samge_wx_bot:v2
 
 ### 如果需要调试
 
-- 配置：`cmd/wxBot/botConfig/botConfig.go`
-- 安装依赖：`go mod tidy`
-- 运行：`go run cmd/wxBot/main.go`
+- 配置：
+```shell
+cp config.dev.json config.json 
+```
+
+- 安装依赖：
+```shell
+go mod tidy
+```
+
+- 运行：
+```shell
+go run cmd/wxBot/main.go
+```
 
 
 ### 技术交流
