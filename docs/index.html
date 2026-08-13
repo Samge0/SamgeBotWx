@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>微信机器人简易助手 - 基于 openwechat + OpenAI 的智能微信机器人</title>
+    <link rel="icon" type="image/png" href="icon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            200: '#ddd6fe',
+                            300: '#c4b5fd',
+                            400: '#a78bfa',
+                            500: '#b041d8',
+                            600: '#9333ea',
+                            700: '#7c3aed',
+                            800: '#6b21a8',
+                            900: '#581c87',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans SC', 'sans-serif'],
+                        serif: ['Noto Serif SC', 'serif'],
+                        display: ['Manrope', 'Noto Sans SC', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 50%, #ede9fe 100%);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(176, 65, 216, 0.1);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #b041d8 0%, #9333ea 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .icon-gradient {
+            background: linear-gradient(135deg, #b041d8 0%, #9333ea 100%);
+        }
+        .hero-gradient {
+            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 50%, #ede9fe 100%);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #b041d8 0%, #9333ea 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(176, 65, 216, 0.3);
+        }
+        .feature-card {
+            transition: all 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(176, 65, 216, 0.15);
+        }
+    </style>
+</head>
+<body class="min-h-screen text-gray-800">
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50 glass-card">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-3">
+                    <img src="icon.png" alt="微信机器人简易助手" class="w-9 h-9 rounded-lg">
+                    <span class="font-bold text-xl text-gray-900">微信机器人简易助手</span>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#features" class="text-gray-700 hover:text-white transition-colors">功能特性</a>
+                    <a href="#how-it-works" class="text-gray-700 hover:text-white transition-colors">工作原理</a>
+                    <a href="#faq" class="text-gray-700 hover:text-white transition-colors">常见问题</a>
+                    <a href="https://github.com/samge/samge_wx_bot" class="text-gray-700 hover:text-white transition-colors">GitHub</a>
+                </div>
+                <button class="btn-primary text-white px-6 py-2 rounded-full font-medium">
+                    立即开始
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-gradient pt-32 pb-20 px-4">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center max-w-4xl mx-auto">
+                <h1 class="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+                    微信机器人简易助手
+                </h1>
+                <p class="text-xl md:text-2xl text-gray-700 mb-4 leading-relaxed">
+                    基于 <span class="font-semibold text-white">openwechat</span> + 
+                    <span class="font-semibold text-white">OpenAI API</span> + 
+                    <span class="font-semibold text-white">Docker</span>
+                </p>
+                <p class="text-lg text-gray-600 mb-8 leading-relaxed max-w-3xl mx-auto">
+                    实现基本的消息（好友、群组）接收与自定义回复、公众号消息监听。
+                    方便在微信中使用 ChatGPT 或者使用自己部署的开源大模型（如 Qwen、GLM、llama2、baichuan2……）
+                </p>
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <button class="btn-primary text-white px-8 py-4 rounded-full font-semibold text-lg w-full sm:w-auto">
+                        快速开始
+                    </button>
+                    <a href="https://github.com/samge/samge_wx_bot" class="glass-card text-gray-900 px-8 py-4 rounded-full font-semibold text-lg w-full sm:w-auto text-center hover:bg-white/80 transition-colors">
+                        查看 GitHub
+                    </a>
+                </div>
+                <div class="mt-8 inline-flex items-center space-x-2 bg-amber-50 text-amber-800 px-4 py-2 rounded-full text-sm">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                    <span>非官方产品有被封号风险，请使用小号作为 Bot 尝试</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-20 px-4">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-gray-900 mb-4">核心功能</h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                    开箱即用的微信机器人解决方案，支持多种 AI 模型
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="feature-card glass-card rounded-2xl p-8">
+                    <div class="icon-gradient w-14 h-14 rounded-xl flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">智能消息回复</h3>
+                    <p class="text-gray-600 leading-relaxed">
+                        支持好友消息、群组消息的智能接收与自定义回复，基于 AI 模型实现自然对话。
+                    </p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="feature-card glass-card rounded-2xl p-8">
+                    <div class="icon-gradient w-14 h-14 rounded-xl flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">多模型支持</h3>
+                    <p class="text-gray-600 leading-relaxed">
+                        支持 ChatGPT 及自己部署的开源大模型（Qwen、GLM、llama2、baichuan2 等）。
+                    </p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="feature-card glass-card rounded-2xl p-8">
+                    <div class="icon-gradient w-14 h-14 rounded-xl flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Docker 容器化</h3>
+                    <p class="text-gray-600 leading-relaxed">
+                        一键 Docker 部署，开箱即用。支持数据持久化，重启后自动恢复登录状态。
+                    </p>
+                </div>
+
+                <!-- Feature 4 -->
+                <div class="feature-card glass-card rounded-2xl p-8">
+                    <div class="icon-gradient w-14 h-14 rounded-xl flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">公众号监听</h3>
+                    <p class="text-gray-600 leading-relaxed">
+                        支持公众号消息监听功能，不错过重要资讯更新。
+                    </p>
+                </div>
+
+                <!-- Feature 5 -->
+                <div class="feature-card glass-card rounded-2xl p-8">
+                    <div class="icon-gradient w-14 h-14 rounded-xl flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">自动重连</h3>
+                    <p class="text-gray-600 leading-relaxed">
+                        智能断线重连机制，确保服务稳定运行，手机扫码登录后自动保持连接。
+                    </p>
+                </div>
+
+                <!-- Feature 6 -->
+                <div class="feature-card glass-card rounded-2xl p-8">
+                    <div class="icon-gradient w-14 h-14 rounded-xl flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">开源项目</h3>
+                    <p class="text-gray-600 leading-relaxed">
+                        完全开源，基于 openwechat 项目。详细文档请查看 GitHub 仓库。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How it Works Section -->
+    <section id="how-it-works" class="py-20 px-4 bg-white/50">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-gray-900 mb-4">快速开始</h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                    三步即可搭建你的专属微信机器人
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Step 1 -->
+                <div class="text-center">
+                    <div class="glass-card rounded-2xl p-8 h-full">
+                        <div class="icon-gradient w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <span class="text-2xl font-bold text-white">1</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">配置 API</h3>
+                        <p class="text-gray-600 leading-relaxed">
+                            【可选】注册 OpenAI 并获取其 token，或使用自己部署的开源模型
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="text-center">
+                    <div class="glass-card rounded-2xl p-8 h-full">
+                        <div class="icon-gradient w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <span class="text-2xl font-bold text-white">2</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">运行 Docker</h3>
+                        <p class="text-gray-600 leading-relaxed">
+                            执行 Docker 命令启动服务，首次运行复制控制台链接访问扫描登录
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="text-center">
+                    <div class="glass-card rounded-2xl p-8 h-full">
+                        <div class="icon-gradient w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <span class="text-2xl font-bold text-white">3</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">开始使用</h3>
+                        <p class="text-gray-600 leading-relaxed">
+                            后续自动推消息到手机登录，即可在微信中使用 AI 助手
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Docker Command -->
+            <div class="mt-12">
+                <div class="glass-card rounded-2xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="font-semibold text-gray-900">Docker 运行命令</h4>
+                        <button class="text-sm text-white hover:text-brand-700">复制</button>
+                    </div>
+                    <pre class="bg-gray-900 text-green-400 p-4 rounded-xl text-sm overflow-x-auto"><code>docker run -d \
+-p 8888:8080 \
+--name samge_wx_bot \
+-v xxx/docker_data/samge_wx_bot/wxBotCache:/app/tmp/wxBotCache \
+-v xxx/docker_data/samge_wx_bot/config.json:/app/config.json \
+--restart always \
+samge/samge_wx_bot:v2</code></pre>
+                    <a href="docker/README.md" class="inline-block mt-4 text-sm text-white hover:text-brand-700">
+                        查看详细参数说明 →
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Debug Section -->
+    <section class="py-20 px-4">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-gray-900 mb-4">本地调试</h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                    需要自定义或调试？按照以下步骤进行本地开发
+                </p>
+            </div>
+
+            <div class="max-w-3xl mx-auto">
+                <div class="space-y-6">
+                    <div class="glass-card rounded-xl p-6">
+                        <h4 class="font-semibold text-gray-900 mb-3">配置文件</h4>
+                        <div class="bg-gray-900 text-green-400 p-4 rounded-xl text-sm">
+                            <code>cp config.dev.json config.json</code>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-xl p-6">
+                        <h4 class="font-semibold text-gray-900 mb-3">安装依赖</h4>
+                        <div class="bg-gray-900 text-green-400 p-4 rounded-xl text-sm">
+                            <code>go mod tidy</code>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-xl p-6">
+                        <h4 class="font-semibold text-gray-900 mb-3">运行程序</h4>
+                        <div class="bg-gray-900 text-green-400 p-4 rounded-xl text-sm">
+                            <code>go run cmd/wxBot/main.go</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="py-20 px-4 bg-white/50">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-gray-900 mb-4">常见问题</h2>
+                <p class="text-lg text-gray-600">
+                    关于使用微信机器人助手的常见疑问
+                </p>
+            </div>
+
+            <div class="space-y-4">
+                <details class="glass-card rounded-xl p-6 cursor-pointer">
+                    <summary class="font-semibold text-gray-900 flex items-center justify-between">
+                        <span>如何避免封号风险？</span>
+                        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </summary>
+                    <div class="mt-4 text-gray-600 leading-relaxed">
+                        建议使用小号作为 Bot 尝试。避免频繁发送消息，注意控制频率。本项目仅供技术交流使用。
+                    </div>
+                </details>
+
+                <details class="glass-card rounded-xl p-6 cursor-pointer">
+                    <summary class="font-semibold text-gray-900 flex items-center justify-between">
+                        <span>支持哪些 AI 模型？</span>
+                        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </summary>
+                    <div class="mt-4 text-gray-600 leading-relaxed">
+                        支持 OpenAI ChatGPT 以及自己部署的开源大模型，包括 Qwen、GLM、llama2、baichuan2 等。
+                    </div>
+                </details>
+
+                <details class="glass-card rounded-xl p-6 cursor-pointer">
+                    <summary class="font-semibold text-gray-900 flex items-center justify-between">
+                        <span>Docker 部署后如何登录？</span>
+                        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </summary>
+                    <div class="mt-4 text-gray-600 leading-relaxed">
+                        首次运行时复制控制台输出的链接，在浏览器中访问并扫描二维码登录。后续会自动推消息到手机登录。
+                    </div>
+                </details>
+
+                <details class="glass-card rounded-xl p-6 cursor-pointer">
+                    <summary class="font-semibold text-gray-900 flex items-center justify-between">
+                        <span>如何获取技术支持？</span>
+                        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </summary>
+                    <div class="mt-4 text-gray-600 leading-relaxed">
+                        可以加入我们的 Discord 社区或添加微信 SamgeApp 进行技术交流。
+                    </div>
+                </details>
+            </div>
+        </div>
+    </section>
+
+    <!-- Community Section -->
+    <section class="py-20 px-4">
+        <div class="max-w-4xl mx-auto">
+            <div class="glass-card rounded-2xl p-12 text-center">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">加入技术社区</h2>
+                <p class="text-lg text-gray-600 mb-8">
+                    与其他开发者交流经验，获取最新动态和技术支持
+                </p>
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <a href="https://discord.com/invite/eRuSqve8CE" class="btn-primary text-white px-8 py-4 rounded-full font-semibold text-lg w-full sm:w-auto text-center">
+                        加入 Discord
+                    </a>
+                    <div class="glass-card px-8 py-4 rounded-full text-gray-900 font-semibold text-lg w-full sm:w-auto text-center">
+                        微信：SamgeApp
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Disclaimer -->
+    <section class="py-12 px-4 bg-amber-50">
+        <div class="max-w-4xl mx-auto">
+            <div class="flex items-start space-x-4">
+                <div class="flex-shrink-0">
+                    <svg class="w-6 h-6 text-white mt-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-amber-900 mb-2">免责声明</h3>
+                    <p class="text-amber-800 leading-relaxed">
+                        该程序仅供技术交流，使用者所有行为与本项目作者无关。使用本程序可能违反微信服务条款，请谨慎使用并承担相应风险。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-12 px-4 border-t border-gray-200">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex flex-col md:flex-row items-center justify-between space-y-6 md:space-y-0">
+                <div class="flex items-center space-x-3">
+                    <img src="icon.png" alt="微信机器人简易助手" class="w-8 h-8 rounded-lg">
+                    <span class="font-semibold text-gray-900">微信机器人简易助手</span>
+                </div>
+                
+                <div class="flex items-center space-x-6">
+                    <a href="https://github.com/samge/samge_wx_bot" class="text-gray-600 hover:text-white transition-colors">
+                        GitHub
+                    </a>
+                    <a href="https://github.com/eatmoreapple/openwechat" class="text-gray-600 hover:text-white transition-colors">
+                        openwechat
+                    </a>
+                    <a href="https://discord.com/invite/eRuSqve8CE" class="text-gray-600 hover:text-white transition-colors">
+                        Discord
+                    </a>
+                </div>
+                
+                <div class="text-gray-500 text-sm">
+                    © 2024 MIT License
+                </div>
+            </div>
+            
+            <div class="mt-8 pt-8 border-t border-gray-200 text-center text-gray-500 text-sm">
+                <p>基于 openwechat + OpenAI API + Docker 构建</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scroll for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Copy code functionality
+        document.querySelectorAll('pre code').forEach(block => {
+            const button = document.createElement('button');
+            button.className = 'absolute top-2 right-2 text-gray-400 hover:text-white transition-colors';
+            button.textContent = '复制';
+            button.onclick = () => {
+                navigator.clipboard.writeText(block.textContent);
+                button.textContent = '已复制!';
+                setTimeout(() => button.textContent = '复制', 2000);
+            };
+            block.parentElement.style.position = 'relative';
+            block.parentElement.appendChild(button);
+        });
+    </script>
+</body>
+</html>

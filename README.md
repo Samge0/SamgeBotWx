@@ -2,6 +2,9 @@
 基于[openwechat](https://github.com/eatmoreapple/openwechat)+[openai](https://openai.com)的api+[docker](https://www.docker.com/)，实现基本的消息（好友、群组）接收与自定义回复、公众号消息监听。
 方便在微信中使用openai[chatGPT](https://chat.openai.com/chat) 或者 使用自己部署的开源大模型（如`Qwen`、`GLM`、`llama2`、`baichuan2`……）<br>
 
+
+> 🌐 **[在线宣传页](https://samge0.github.io/SamgeBotWx/)** — 可视化了解功能特性与工作流程
+
 因为本项目是基于[openwechat](https://github.com/eatmoreapple/openwechat) ，微信Bot详细文档请到这里查看：[openwechat](https://github.com/eatmoreapple/openwechat) <br>
 
 【温馨提示】非官方产品有被封号风险，请使用小号作为Bot尝试。<br>
